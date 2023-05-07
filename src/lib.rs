@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{Write, BufReader, BufRead};
 
 enum Section {
 	SETTINGS,
@@ -28,6 +28,7 @@ impl fmt::Display for Entry {
     }
 }
 
+#[derive(PartialEq, Debug)]
 pub struct LabFile {
 	settings: String,
     label: HashMap<String, Entry>,
@@ -36,7 +37,7 @@ pub struct LabFile {
 
 impl LabFile {
 	pub fn new(header: &str) -> LabFile {
-		let new_header: String = String::from(header);
+		let new_header: String = String::from(header.trim());
 		let new_label: HashMap<String, Entry> = HashMap::new();
 		let new_ramcell: HashMap<String, Entry> = HashMap::new();
         LabFile{settings: new_header, label: new_label, ramcell: new_ramcell}
@@ -49,15 +50,23 @@ impl LabFile {
 		let new_entry: Entry = Entry::new(String::from(label_name), String::from(label_raster));
         self.ramcell.insert(new_entry.name.clone(), new_entry);
     }
+	pub fn write(&mut self, filename: &str) -> Result<(), Box<dyn Error>> {
+		let mut output: File = File::create(filename)?;
+		write!(output, "{}", self.to_string())?;
+		Ok(())
+	}
+
 	pub fn read_from_file(filename: &str) -> Result<LabFile, Box<dyn Error>> {
 		let file: File = File::open(filename)?;
 		let reader: BufReader<File> = BufReader::new(file);
-		let mut lab_file: LabFile = LabFile::new("Version;V1.1\nMultiRasterSeperator;&");
+		let mut lab_file: LabFile = LabFile::new("");
 		let mut sec: Section = Section::SETTINGS;
 		
 		for line in reader.lines() {
 			let line: String = line?;
-			if line.starts_with("[SETTINGS]") {
+			if line.is_empty() {
+				// pass
+			} else if line.starts_with("[SETTINGS]") {
 				sec = Section::SETTINGS;
 			} else if line.starts_with("[LABEL]") {
 				sec = Section::LABEL;
@@ -67,13 +76,22 @@ impl LabFile {
 				let fields: Vec<&str> = line.split(';').collect();
 				match sec {
 					Section::SETTINGS => {
-						lab_file.settings.push_str(&String::from(line));
+						lab_file.settings.push_str(&String::from(line.trim()));
+						lab_file.settings.push_str("\n");
 					},
 					Section::LABEL => {
-						lab_file.add_label(fields[0].trim(), fields[1].trim());
+						if fields.len() > 1 {
+							lab_file.add_label(fields[0].trim(), fields[1].trim());
+						} else {
+							lab_file.add_label(fields[0].trim(), "");
+						}
 					},
 					Section::RAMCELL => {
-						lab_file.add_ramcell(fields[0].trim(), fields[1].trim());
+						if fields.len() > 1 {
+							lab_file.add_ramcell(fields[0].trim(), fields[1].trim());
+						} else {
+							lab_file.add_ramcell(fields[0].trim(), "");
+						}
 					}
 				} 
 			}
@@ -84,11 +102,16 @@ impl LabFile {
 
 impl fmt::Display for LabFile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut outp = format!("[SETTINGS]\n{}\n", self.settings);
+        let mut outp = format!("[SETTINGS]\n{}\n\n", self.settings);
 		if !self.label.is_empty() {
 			outp.push_str("[LABEL]\n");
             for val in self.label.values() {
-                let entry = format!("{}; {};", val.name, val.raster);
+                let entry: String;
+				if val.raster.is_empty() {
+					entry = format!("{};\n", val.name);
+				} else {
+					entry = format!("{}; {};\n", val.name, val.raster);
+				}
                 outp.push_str(&entry);
             }
 			outp.push_str("\n");
@@ -96,7 +119,12 @@ impl fmt::Display for LabFile {
 		if !self.ramcell.is_empty() {
 			outp.push_str("[RAMCELL]\n");
             for val in self.ramcell.values() {
-                let entry = format!("{}; {};", val.name, val.raster);
+				let entry: String;
+				if val.raster.is_empty() {
+					entry = format!("{};\n", val.name);
+				} else {
+					entry = format!("{}; {};\n", val.name, val.raster);
+				}
                 outp.push_str(&entry);
             }
 			outp.push_str("\n");
