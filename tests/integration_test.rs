@@ -9,7 +9,7 @@ fn lab_creation() {
     lbl_file.add_ramcell("b_ram_name", "b_ram_raster");
     lbl_file.add_ramcell("c_ram_name", "c_ram_raster");
     lbl_file.add_ramcell("d_ram_name", "");
-    println!("{}", lbl_file);
+    //println!("{}", lbl_file);
 }
 
 // test read from file
