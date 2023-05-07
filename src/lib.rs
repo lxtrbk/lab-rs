@@ -10,6 +10,7 @@ enum Section {
 	RAMCELL,
 }
 
+#[derive(PartialEq, Debug)]
 struct Entry {
     name: String,
     raster: String,
@@ -40,12 +41,12 @@ impl LabFile {
 		let new_ramcell: HashMap<String, Entry> = HashMap::new();
         LabFile{settings: new_header, label: new_label, ramcell: new_ramcell}
     }
-    pub fn add_label(&mut self, label_name: String, label_raster: String) {
-		let new_entry: Entry = Entry::new(label_name, label_raster);
+    pub fn add_label(&mut self, label_name: &str, label_raster: &str) {
+		let new_entry: Entry = Entry::new(String::from(label_name), String::from(label_raster));
         self.label.insert(new_entry.name.clone(), new_entry);
     }
-	pub fn add_ramcell(&mut self, label_name: String, label_raster: String) {
-		let new_entry: Entry = Entry::new(label_name, label_raster);
+	pub fn add_ramcell(&mut self, label_name: &str, label_raster: &str) {
+		let new_entry: Entry = Entry::new(String::from(label_name), String::from(label_raster));
         self.ramcell.insert(new_entry.name.clone(), new_entry);
     }
 	pub fn read_from_file(filename: &str) -> Result<LabFile, Box<dyn Error>> {
@@ -69,14 +70,10 @@ impl LabFile {
 						lab_file.settings.push_str(&String::from(line));
 					},
 					Section::LABEL => {
-						let name = String::from(fields[0].trim());
-						let raster = String::from(fields[1].trim());
-						lab_file.add_label(name, raster);
+						lab_file.add_label(fields[0].trim(), fields[1].trim());
 					},
 					Section::RAMCELL => {
-						let name = String::from(fields[0].trim());
-						let raster = String::from(fields[1].trim());
-						lab_file.add_ramcell(name, raster);
+						lab_file.add_ramcell(fields[0].trim(), fields[1].trim());
 					}
 				} 
 			}
@@ -119,9 +116,16 @@ impl fmt::Display for LabFile {
 mod tests {
     use super::*;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+	#[test]
+	fn new_entry () {
+		let entry1: Entry = Entry::new(String::from("test_name"), String::from("test_raster"));
+		let entry2: Entry = Entry {name: String::from("test_name"), raster: String::from("test_raster")};
+		assert_eq!(entry1, entry2);
+	}
+
+	#[test]
+	fn print_entry () {
+		let entry2: Entry = Entry {name: String::from("test_name"), raster: String::from("test_raster")};
+		assert_eq!(entry2.to_string(), "(test_name, test_raster)");
+	}
 }
