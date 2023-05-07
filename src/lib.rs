@@ -102,7 +102,7 @@ impl LabFile {
 
 impl fmt::Display for LabFile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut outp = format!("[SETTINGS]\n{}\n\n", self.settings);
+        let mut outp = format!("[SETTINGS]\n{}\n", self.settings);
 		if !self.label.is_empty() {
 			outp.push_str("[LABEL]\n");
             for val in self.label.values() {
@@ -127,7 +127,7 @@ impl fmt::Display for LabFile {
 				}
                 outp.push_str(&entry);
             }
-			outp.push_str("\n");
+			//outp.push_str("\n");
         }
 		write!(f, "{}", outp.trim_end_matches(", "))
     }
