@@ -3,6 +3,7 @@ use std::error::Error;
 use std::fmt;
 use std::fs::File;
 use std::io::{Write, BufReader, BufRead};
+use std::ops::Add;
 
 enum Section {
 	SETTINGS,
@@ -98,6 +99,35 @@ impl LabFile {
 		}
 		Ok(lab_file)
 	}
+}
+
+impl Add for LabFile {
+	type Output = Self;
+
+    fn add(self, other: Self) -> Self::Output {
+        let mut outp_lab = LabFile::new(&self.settings);
+		if !self.label.is_empty() {
+			for val in self.label.values() {
+				outp_lab.add_label(&val.name, &val.raster);
+			}
+		}
+		if !self.ramcell.is_empty() {
+			for val in self.ramcell.values() {
+				outp_lab.add_ramcell(&val.name, &val.raster);
+			}
+		}
+		if !other.label.is_empty() {
+			for val in other.label.values() {
+				outp_lab.add_label(&val.name, &val.raster);
+			}
+		}
+		if !other.ramcell.is_empty() {
+			for val in other.ramcell.values() {
+				outp_lab.add_ramcell(&val.name, &val.raster);
+			}
+		}
+		return outp_lab;
+    }
 }
 
 impl fmt::Display for LabFile {
