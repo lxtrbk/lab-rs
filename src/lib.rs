@@ -3,8 +3,7 @@ use std::error::Error;
 use std::fmt;
 use std::fs::File;
 use std::io::{Write, BufReader, BufRead};
-use std::ops::Add;
-use std::ops::Sub;
+use std::ops::{Add, Sub};
 
 enum Section {
 	SETTINGS,
