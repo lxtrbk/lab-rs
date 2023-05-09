@@ -4,6 +4,7 @@ use std::fmt;
 use std::fs::File;
 use std::io::{Write, BufReader, BufRead};
 use std::ops::Add;
+use std::ops::Sub;
 
 enum Section {
 	SETTINGS,
@@ -43,14 +44,26 @@ impl LabFile {
 		let new_ramcell: HashMap<String, Entry> = HashMap::new();
         LabFile{settings: new_header, label: new_label, ramcell: new_ramcell}
     }
+
     pub fn add_label(&mut self, label_name: &str, label_raster: &str) {
 		let new_entry: Entry = Entry::new(String::from(label_name), String::from(label_raster));
         self.label.insert(new_entry.name.clone(), new_entry);
     }
+
 	pub fn add_ramcell(&mut self, label_name: &str, label_raster: &str) {
 		let new_entry: Entry = Entry::new(String::from(label_name), String::from(label_raster));
         self.ramcell.insert(new_entry.name.clone(), new_entry);
     }
+
+	pub fn del(&mut self, label_name: &str) {
+		if self.label.contains_key(label_name) {
+			self.label.remove(label_name);
+		}
+		if self.ramcell.contains_key(label_name) {
+			self.ramcell.remove(label_name);
+		}
+	}
+
 	pub fn write(&mut self, filename: &str) -> Result<(), Box<dyn Error>> {
 		let mut output: File = File::create(filename)?;
 		write!(output, "{}", self.to_string())?;
@@ -104,30 +117,37 @@ impl LabFile {
 impl Add for LabFile {
 	type Output = Self;
 
-    fn add(self, other: Self) -> Self::Output {
-        let mut outp_lab = LabFile::new(&self.settings);
-		if !self.label.is_empty() {
-			for val in self.label.values() {
-				outp_lab.add_label(&val.name, &val.raster);
-			}
-		}
-		if !self.ramcell.is_empty() {
-			for val in self.ramcell.values() {
-				outp_lab.add_ramcell(&val.name, &val.raster);
-			}
-		}
+    fn add(mut self, other: Self) -> Self::Output {
 		if !other.label.is_empty() {
 			for val in other.label.values() {
-				outp_lab.add_label(&val.name, &val.raster);
+				self.add_label(&val.name, &val.raster);
 			}
 		}
 		if !other.ramcell.is_empty() {
 			for val in other.ramcell.values() {
-				outp_lab.add_ramcell(&val.name, &val.raster);
+				self.add_ramcell(&val.name, &val.raster);
 			}
 		}
-		return outp_lab;
+		return self;
     }
+}
+
+impl Sub for LabFile {
+	type Output = Self;
+
+	fn sub(mut self, other: Self) -> Self::Output {
+		if !other.label.is_empty() {
+			for key in other.label.keys() {
+				self.del(&key);
+			}
+		}
+		if !other.ramcell.is_empty() {
+			for key in other.ramcell.keys() {
+				self.del(&key);
+			}
+		}
+		return self;
+	}
 }
 
 impl fmt::Display for LabFile {
@@ -162,13 +182,6 @@ impl fmt::Display for LabFile {
 		write!(f, "{}", outp.trim_end_matches(", "))
     }
 }
-
-/* fn main() -> Result<(), Box<dyn Error>> {
-    let lab_file = read_lab_file("entries.csv")?;
-    println!("{}", lab_file);
-    Ok(())
-} */
-
 
 #[cfg(test)]
 mod tests {
