@@ -1,6 +1,6 @@
 # lab-rs
 
-Rust library for parsing .lab-files v1.1
+Rust library for working with .lab-files v1.1
 
 ## Getting Started
 
