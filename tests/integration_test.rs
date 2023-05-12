@@ -19,11 +19,11 @@ fn lab_creation() {
 // test write to file
 #[test]
 fn disk_read_write() {
-    let mut lbl_file1 = LabFile::read_from_file("debug_test_in.lab").unwrap();
-    lbl_file1.write("debug_test_out.lab").unwrap();
+    let mut lbl_file1 = LabFile::read_from_file(r#"./tests/debug_test_in.lab"#).unwrap();
+    lbl_file1.write(r#"./tests/debug_test_out.lab"#).unwrap();
     //println!("{}", lbl_file1);
-    let lbl_file2 = LabFile::read_from_file("debug_test_out.lab").unwrap();
+    let lbl_file2 = LabFile::read_from_file(r#"./tests/debug_test_out.lab"#).unwrap();
     assert_eq!(lbl_file1, lbl_file2);
-    fs::remove_file("debug_test_out.lab").unwrap();
+    fs::remove_file(r#"./tests/debug_test_out.lab"#).unwrap();
     //println!("end");
 }
