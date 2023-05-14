@@ -54,7 +54,7 @@ impl LabFile {
         self.ramcell.insert(new_entry.name.clone(), new_entry);
     }
 
-	pub fn del(&mut self, label_name: &str) {
+	pub fn delete_label(&mut self, label_name: &str) {
 		if self.label.contains_key(label_name) {
 			self.label.remove(label_name);
 		}
@@ -137,12 +137,12 @@ impl Sub for LabFile {
 	fn sub(mut self, other: Self) -> Self::Output {
 		if !other.label.is_empty() {
 			for key in other.label.keys() {
-				self.del(&key);
+				self.delete_label(&key);
 			}
 		}
 		if !other.ramcell.is_empty() {
 			for key in other.ramcell.keys() {
-				self.del(&key);
+				self.delete_label(&key);
 			}
 		}
 		return self;
