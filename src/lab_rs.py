@@ -12,7 +12,11 @@ class Entry(ctypes.Structure):
 
 # Define the Rust struct LabFile
 class LabFile(ctypes.Structure):
-    pass
+    _fields_ = [
+        ('settings', ctypes.c_char_p),
+        ('label', {}),
+        ('ramcell', {}),
+    ]
 
 # LabFile function prototypes
 rust_lib.LabFile_new.argtypes = [ctypes.c_char_p]
@@ -76,7 +80,7 @@ class LabFile:
             }
 
             # Create the LabFile object
-            lab_file_obj = LabFile("Header")
+            lab_file_obj = LabFile(lab_file.settings)
             lab_file_obj.label = label_dict
             lab_file_obj.ramcell = ramcell_dict
 
