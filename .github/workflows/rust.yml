@@ -29,9 +29,27 @@ jobs:
         run: cargo install cargo-audit
       - name: Build
         run: cargo build --verbose
+      - name: Copy and Rename DLL 
+        run:
+          find ./target/release/ -type f -name "lab_rs.dll" | while read fname; do
+            dirname=`dirname "$fname"`
+            foldername=`basename "$dirname"`
+            filename=`basename "$fname"`
+            newname=`echo "$dirname" | sed -e "s/ /_/g"`
+            cp "${dirname}/$filename" "${dirname}/$filename.pyd"
+          done
       - name: Test
         run: cargo test --verbose
       - name: Clippy
         run: cargo clippy --verbose -- -D warnings
       - name: Audit
         run: cargo audit
+      - name: Commit files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -m "Add changes" -a
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}

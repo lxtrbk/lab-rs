@@ -1,7 +1,7 @@
 [package]
 name = "lab-rs"
 description = "rust library for working with .lab-files v1.1"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 authors = ["Alexander Triebke"]
 repository = "https://github.com/lxtrbk/lab-rs"
@@ -16,5 +16,7 @@ crate-type = ["cdylib", "rlib"]
 
 # try do let this empty
 [dependencies]
-rust-cpython = "0.7"
 
+[dependencies.cpython]
+version = "0.7"
+features = ["extension-module"]

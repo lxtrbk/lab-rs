@@ -1,5 +1,5 @@
 use core::panic;
-use cpython::{PyObject, PyResult, Python};
+use cpython::{py_fn, py_module_initializer, PyObject, PyResult, Python};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
