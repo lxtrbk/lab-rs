@@ -1,4 +1,5 @@
 use core::panic;
+use cpython::{PyObject, PyResult, Python};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
@@ -253,6 +254,18 @@ impl fmt::Display for LabFile {
         }
         write!(f, "{}", outp.trim_end_matches(", "))
     }
+}
+
+// Create Python bindings using rust-cpython
+py_module_initializer!(lib_rs, init_lib_rs, PyInit_myrustlib, |py, m| {
+    m.add_class::<LabFile>(py)?;
+    Ok(())
+});
+
+// Define the entry point for the Python module
+#[no_mangle]
+pub extern "C" fn PyInit_lib_rs() -> *mut cpython::PyObject {
+    Python::with_gil(|py| init_lib_rs(py))
 }
 
 #[cfg(test)]

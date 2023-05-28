@@ -16,5 +16,5 @@ crate-type = ["cdylib", "rlib"]
 
 # try do let this empty
 [dependencies]
-
+rust-cpython = "0.7"
 
