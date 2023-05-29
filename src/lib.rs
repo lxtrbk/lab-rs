@@ -31,7 +31,8 @@ impl fmt::Display for Entry {
     }
 }
 
-#[pyclass, derive(PartialEq, Debug)]
+#[pyclass]
+#[derive(PartialEq, Debug)]
 pub struct LabFile {
     #[pyo3(get)]
     settings: String,
