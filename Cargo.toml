@@ -17,6 +17,6 @@ crate-type = ["cdylib", "rlib"]
 # try do let this empty
 [dependencies]
 
-[dependencies.cpython]
-version = "0.7"
+[dependencies.pyo3]
+version = "0.18"
 features = ["extension-module"]

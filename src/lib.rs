@@ -1,5 +1,5 @@
 use core::panic;
-use cpython::{py_fn, py_module_initializer, PyObject, PyResult, Python};
+use pyo3::prelude::*;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
@@ -31,13 +31,17 @@ impl fmt::Display for Entry {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[pyclass, derive(PartialEq, Debug)]
 pub struct LabFile {
+    #[pyo3(get)]
     settings: String,
+    #[pyo3(get)]
     label: HashMap<String, Entry>,
+    #[pyo3(get)]
     ramcell: HashMap<String, Entry>,
 }
 
+#[pymethods]
 impl LabFile {
     /// Creates new LabFile representation.
     ///
@@ -48,6 +52,7 @@ impl LabFile {
     ///
     /// println!("{}", file);
     /// ```
+    #[new]
     pub fn new(header: &str) -> LabFile {
         let new_header: String = String::from(header);
         let new_label: HashMap<String, Entry> = HashMap::new();
@@ -254,18 +259,6 @@ impl fmt::Display for LabFile {
         }
         write!(f, "{}", outp.trim_end_matches(", "))
     }
-}
-
-// Create Python bindings using rust-cpython
-py_module_initializer!(lib_rs, init_lib_rs, PyInit_myrustlib, |py, m| {
-    m.add_class::<LabFile>(py)?;
-    Ok(())
-});
-
-// Define the entry point for the Python module
-#[no_mangle]
-pub extern "C" fn PyInit_lib_rs() -> *mut cpython::PyObject {
-    Python::with_gil(|py| init_lib_rs(py))
 }
 
 #[cfg(test)]
