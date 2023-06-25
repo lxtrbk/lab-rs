@@ -37,6 +37,15 @@ pub struct LabFile {
 }
 
 impl LabFile {
+    /// Creates new LabFile representation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let file = lab_rs::LabFile::new("Header\n");
+    ///
+    /// println!("{}", file);
+    /// ```
     pub fn new(header: &str) -> LabFile {
         let new_header: String = String::from(header.trim());
         let new_label: HashMap<String, Entry> = HashMap::new();
@@ -48,17 +57,46 @@ impl LabFile {
         }
     }
 
+    /// Adds Label to LabFile representation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut file = lab_rs::LabFile::new("Header");
+    /// file.add_label("label_name", "label_raster");
+    /// println!("{}", file);
+    /// ```
     pub fn add_label(&mut self, label_name: &str, label_raster: &str) {
         let new_entry: Entry = Entry::new(String::from(label_name), String::from(label_raster));
         self.label.insert(new_entry.name.clone(), new_entry);
     }
 
+    /// Adds Ramcell to LabFile representation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut file = lab_rs::LabFile::new("Header");
+    /// file.add_ramcell("ramcell_name", "ramcell_raster");
+    /// println!("{}", file);
+    /// ```
     pub fn add_ramcell(&mut self, label_name: &str, label_raster: &str) {
         let new_entry: Entry = Entry::new(String::from(label_name), String::from(label_raster));
         self.ramcell.insert(new_entry.name.clone(), new_entry);
     }
 
-    pub fn del(&mut self, label_name: &str) {
+    /// Removes Label/Ramcell from LabFile representation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut file = lab_rs::LabFile::new("Header");
+    /// file.add_label("label_name", "label_raster");
+    /// println!("{}", file);
+    /// file.delete_label("label_name");
+    /// println!("{}", file);
+    /// ```
+    pub fn delete_label(&mut self, label_name: &str) {
         if self.label.contains_key(label_name) {
             self.label.remove(label_name);
         }
@@ -67,6 +105,17 @@ impl LabFile {
         }
     }
 
+    /// Writes LabFile representation to a file.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut file = lab_rs::LabFile::new("Header");
+    /// file.add_label("label_name", "label_raster");
+    /// file.add_ramcell("ramcell_name", "ramcell_raster");
+    /// file.write("output.lab").unwrap();
+    /// println!("{}", file);
+    /// ```
     pub fn write(&mut self, filename: &str) -> Result<(), Box<dyn Error>> {
         let mut output: File = match File::create(filename) {
             Ok(input_file) => input_file,
@@ -76,14 +125,33 @@ impl LabFile {
         Ok(())
     }
 
+    /// Reads LabFile representation from a file.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut file1 = lab_rs::LabFile::new("Header\n");
+    /// file1.add_label("label_name", "label_raster");
+    /// file1.add_ramcell("ramcell_name", "ramcell_raster");
+    /// file1.write("output.lab").unwrap();
+    ///
+    /// let file2 = lab_rs::LabFile::read_from_file("output.lab").unwrap();
+    /// assert_eq!(file1, file2);
+    /// ```
     pub fn read_from_file(filename: &str) -> Result<LabFile, Box<dyn Error>> {
-        let file: File = File::open(filename)?;
+        let file: File = match File::open(filename) {
+            Ok(read_file) => read_file,
+            Err(error) => panic!("Problem opening the file: {:?}", error),
+        };
         let reader: BufReader<File> = BufReader::new(file);
         let mut lab_file: LabFile = LabFile::new("");
         let mut sec: Section = Section::Settings;
 
-        for line in reader.lines() {
-            let line: String = line?;
+        for read_result in reader.lines() {
+            let line: String = match read_result {
+                Ok(read_line) => read_line,
+                Err(error) => panic!("Problem reading the file: {:?}", error),
+            };
             if line.is_empty() {
                 // pass
             } else if line.starts_with("[SETTINGS]") {
@@ -144,12 +212,12 @@ impl Sub for LabFile {
     fn sub(mut self, other: Self) -> Self::Output {
         if !other.label.is_empty() {
             for key in other.label.keys() {
-                self.del(key);
+                self.delete_label(key);
             }
         }
         if !other.ramcell.is_empty() {
             for key in other.ramcell.keys() {
-                self.del(key);
+                self.delete_label(key);
             }
         }
         self
@@ -158,11 +226,11 @@ impl Sub for LabFile {
 
 impl fmt::Display for LabFile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut outp = format!("[SETTINGS]\n{}\n", self.settings);
+        let mut outp: String = format!("[SETTINGS]\n{}\n", self.settings);
         if !self.label.is_empty() {
             outp.push_str("[LABEL]\n");
             for val in self.label.values() {
-                let entry = if val.raster.is_empty() {
+                let entry: String = if val.raster.is_empty() {
                     format!("{};\n", val.name)
                 } else {
                     format!("{}; {};\n", val.name, val.raster)
@@ -181,7 +249,6 @@ impl fmt::Display for LabFile {
                 };
                 outp.push_str(&entry);
             }
-            //outp.push_str("\n");
         }
         write!(f, "{}", outp.trim_end_matches(", "))
     }
