@@ -45,7 +45,7 @@ impl LabFile {
     /// let file = lab_rs::LabFile::new("Header\nHeader2");
     ///
     /// println!("{}", file);
-    /// assert_eq!(file.to_string(), String::from("[SETTINGS]\nHeader\nHeader2\n\n"))
+    /// assert_eq!(file.to_string(), String::from("[SETTINGS]\nHeader\nHeader2\n\n"));
     /// ```
     pub fn new(header: &str) -> LabFile {
         let new_header: String = String::from(header.trim());
@@ -66,7 +66,7 @@ impl LabFile {
     /// let mut file = lab_rs::LabFile::new("Header");
     /// file.add_label("label_name", "label_raster");
     /// println!("{}", file);
-    /// assert_eq!(file.to_string(), String::from("[SETTINGS]\nHeader\n\n[LABEL]\nlabel_name; label_raster;\n\n"))
+    /// assert_eq!(file.to_string(), String::from("[SETTINGS]\nHeader\n\n[LABEL]\nlabel_name; label_raster;\n\n"));
     /// ```
     pub fn add_label(&mut self, label_name: &str, label_raster: &str) {
         let new_entry: Entry = Entry::new(String::from(label_name), String::from(label_raster));
@@ -81,7 +81,7 @@ impl LabFile {
     /// let mut file = lab_rs::LabFile::new("Header");
     /// file.add_ramcell("ramcell_name", "ramcell_raster");
     /// println!("{}", file);
-    /// assert_eq!(file.to_string(), String::from("[SETTINGS]\nHeader\n\n[RAMCELL]\nramcell_name; ramcell_raster;\n\n"))
+    /// assert_eq!(file.to_string(), String::from("[SETTINGS]\nHeader\n\n[RAMCELL]\nramcell_name; ramcell_raster;\n\n"));
     /// ```
     pub fn add_ramcell(&mut self, label_name: &str, label_raster: &str) {
         let new_entry: Entry = Entry::new(String::from(label_name), String::from(label_raster));
@@ -123,7 +123,7 @@ impl LabFile {
     /// file.add_ramcell("ramcell_name", "ramcell_raster");
     /// file.write("output.lab").unwrap();
     /// println!("{}", file);
-    /// assert_eq!(file.to_string(), String::from("[SETTINGS]\nHeader\n\n[LABEL]\nlabel_name; label_raster;\n\n[RAMCELL]\nramcell_name; ramcell_raster;\n\n"))
+    /// assert_eq!(file.to_string(), String::from("[SETTINGS]\nHeader\n\n[LABEL]\nlabel_name; label_raster;\n\n[RAMCELL]\nramcell_name; ramcell_raster;\n\n"));
     ///
     /// fs::remove_file("output.lab").unwrap_or_else(|why| {println!("! {:?}", why.kind());});
     /// ```
