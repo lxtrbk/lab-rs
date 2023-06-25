@@ -1,5 +1,6 @@
 use core::panic;
 use pyo3::prelude::*;
+use pyo3::types::PyDict;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
@@ -13,6 +14,7 @@ enum Section {
     Ramcell,
 }
 
+#[pyclass(frozen, get_all)]
 #[derive(PartialEq, Debug)]
 struct Entry {
     name: String,
@@ -31,14 +33,11 @@ impl fmt::Display for Entry {
     }
 }
 
-#[pyclass]
+#[pyclass(get_all)]
 #[derive(PartialEq, Debug)]
 pub struct LabFile {
-    #[pyo3(get)]
     settings: String,
-    #[pyo3(get)]
     label: HashMap<String, Entry>,
-    #[pyo3(get)]
     ramcell: HashMap<String, Entry>,
 }
 
