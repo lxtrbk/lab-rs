@@ -121,11 +121,11 @@ impl LabFile {
     /// let mut file = lab_rs::LabFile::new("Header");
     /// file.add_label("label_name", "label_raster");
     /// file.add_ramcell("ramcell_name", "ramcell_raster");
-    /// file.write("output.lab").unwrap();
+    /// file.write("file_out.lab").unwrap();
     /// println!("{}", file);
     /// assert_eq!(file.to_string(), String::from("[SETTINGS]\nHeader\n\n[LABEL]\nlabel_name; label_raster;\n\n[RAMCELL]\nramcell_name; ramcell_raster;\n\n"));
     ///
-    /// fs::remove_file("output.lab").unwrap_or_else(|why| {println!("! {:?}", why.kind());});
+    /// fs::remove_file("file_out.lab").unwrap_or_else(|why| {println!("! {:?}", why.kind());});
     /// ```
     pub fn write(&mut self, filename: &str) -> Result<(), Box<dyn Error>> {
         let mut output: File = match File::create(filename) {
@@ -147,12 +147,12 @@ impl LabFile {
     /// let mut file1 = LabFile::new("Header\nHeader2");
     /// file1.add_label("label_name", "label_raster");
     /// file1.add_ramcell("ramcell_name", "ramcell_raster");
-    /// file1.write("output.lab").unwrap();
+    /// file1.write("file_out.lab").unwrap();
     ///
-    /// let file2 = LabFile::read_from_file("output.lab").unwrap();
+    /// let file2 = LabFile::read_from_file("file_out.lab").unwrap();
     /// assert_eq!(file1, file2);
     ///
-    /// fs::remove_file("output.lab").unwrap_or_else(|why| {println!("! {:?}", why.kind());});
+    /// fs::remove_file("file_out.lab").unwrap_or_else(|why| {println!("! {:?}", why.kind());});
     ///
     /// ```
     pub fn read_from_file(filename: &str) -> Result<LabFile, Box<dyn Error>> {
@@ -248,25 +248,37 @@ impl fmt::Display for LabFile {
         let mut outp: String = format!("[SETTINGS]\n{}\n\n", self.settings);
         if !self.label.is_empty() {
             outp.push_str("[LABEL]\n");
-            for val in self.label.values() {
-                let entry: String = if val.raster.is_empty() {
-                    format!("{};\n", val.name)
+            let mut sorted_keys: Vec<&str> = self.label.keys().map(|s| s.as_str()).collect();
+            sorted_keys.sort();
+            for key in sorted_keys {
+                if let Some(val) = self.label.get(key) {
+                    let entry: String = if val.raster.is_empty() {
+                        format!("{};\n", val.name)
+                    } else {
+                        format!("{}; {};\n", val.name, val.raster)
+                    };
+                    outp.push_str(&entry);
                 } else {
-                    format!("{}; {};\n", val.name, val.raster)
+                    panic!("key from label dict is not found in label dict")
                 };
-                outp.push_str(&entry);
             }
             outp.push('\n');
         }
         if !self.ramcell.is_empty() {
             outp.push_str("[RAMCELL]\n");
-            for val in self.ramcell.values() {
-                let entry: String = if val.raster.is_empty() {
-                    format!("{};\n", val.name)
+            let mut sorted_keys: Vec<&str> = self.ramcell.keys().map(|s| s.as_str()).collect();
+            sorted_keys.sort();
+            for key in sorted_keys {
+                if let Some(val) = self.ramcell.get(key) {
+                    let entry: String = if val.raster.is_empty() {
+                        format!("{};\n", val.name)
+                    } else {
+                        format!("{}; {};\n", val.name, val.raster)
+                    };
+                    outp.push_str(&entry);
                 } else {
-                    format!("{}; {};\n", val.name, val.raster)
+                    panic!("key from ramcell dict is not found in ramcell dict");
                 };
-                outp.push_str(&entry);
             }
             outp.push('\n');
         }

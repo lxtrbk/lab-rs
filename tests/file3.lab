@@ -1,0 +1,16 @@
+[SETTINGS]
+Version;V1.1
+MultiRasterSeperator;&
+
+[LABEL]
+a_lbl_name; a_lbl_raster;
+c_lbl_name; c_lbl_raster;
+
+[RAMCELL]
+a_ram_name; a_ram_raster;
+b_ram_name; b_ram_raster;
+c_ram_name; c_ram_raster;
+d_ram_name;
+i_ram_name; i_ram_raster;
+j_ram_name;
+
