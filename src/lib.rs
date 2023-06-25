@@ -42,9 +42,10 @@ impl LabFile {
     /// # Examples
     ///
     /// ```
-    /// let file = lab_rs::LabFile::new("Header\n");
+    /// let file = lab_rs::LabFile::new("Header\nHeader2");
     ///
     /// println!("{}", file);
+    /// assert_eq!(file.to_string(), String::from("[SETTINGS]\nHeader\nHeader2\n\n"))
     /// ```
     pub fn new(header: &str) -> LabFile {
         let new_header: String = String::from(header.trim());
@@ -65,6 +66,7 @@ impl LabFile {
     /// let mut file = lab_rs::LabFile::new("Header");
     /// file.add_label("label_name", "label_raster");
     /// println!("{}", file);
+    /// assert_eq!(file.to_string(), String::from("[SETTINGS]\nHeader\n\n[LABEL]\nlabel_name; label_raster;\n\n"))
     /// ```
     pub fn add_label(&mut self, label_name: &str, label_raster: &str) {
         let new_entry: Entry = Entry::new(String::from(label_name), String::from(label_raster));
@@ -79,6 +81,7 @@ impl LabFile {
     /// let mut file = lab_rs::LabFile::new("Header");
     /// file.add_ramcell("ramcell_name", "ramcell_raster");
     /// println!("{}", file);
+    /// assert_eq!(file.to_string(), String::from("[SETTINGS]\nHeader\n\n[RAMCELL]\nramcell_name; ramcell_raster;\n\n"))
     /// ```
     pub fn add_ramcell(&mut self, label_name: &str, label_raster: &str) {
         let new_entry: Entry = Entry::new(String::from(label_name), String::from(label_raster));
@@ -93,8 +96,10 @@ impl LabFile {
     /// let mut file = lab_rs::LabFile::new("Header");
     /// file.add_label("label_name", "label_raster");
     /// println!("{}", file);
+    /// assert_eq!(file.to_string(), String::from("[SETTINGS]\nHeader\n\n[LABEL]\nlabel_name; label_raster;\n\n"));
     /// file.delete_label("label_name");
     /// println!("{}", file);
+    /// assert_eq!(file.to_string(), String::from("[SETTINGS]\nHeader\n\n"));
     /// ```
     pub fn delete_label(&mut self, label_name: &str) {
         if self.label.contains_key(label_name) {
@@ -110,11 +115,17 @@ impl LabFile {
     /// # Examples
     ///
     /// ```
+    /// use std::fs;
+    /// use lab_rs::LabFile;
+    ///
     /// let mut file = lab_rs::LabFile::new("Header");
     /// file.add_label("label_name", "label_raster");
     /// file.add_ramcell("ramcell_name", "ramcell_raster");
     /// file.write("output.lab").unwrap();
     /// println!("{}", file);
+    /// assert_eq!(file.to_string(), String::from("[SETTINGS]\nHeader\n\n[LABEL]\nlabel_name; label_raster;\n\n[RAMCELL]\nramcell_name; ramcell_raster;\n\n"))
+    ///
+    /// fs::remove_file("output.lab").unwrap_or_else(|why| {println!("! {:?}", why.kind());});
     /// ```
     pub fn write(&mut self, filename: &str) -> Result<(), Box<dyn Error>> {
         let mut output: File = match File::create(filename) {
@@ -130,13 +141,19 @@ impl LabFile {
     /// # Examples
     ///
     /// ```
-    /// let mut file1 = lab_rs::LabFile::new("Header\n");
+    /// use std::fs;
+    /// use lab_rs::LabFile;
+    ///
+    /// let mut file1 = LabFile::new("Header\nHeader2");
     /// file1.add_label("label_name", "label_raster");
     /// file1.add_ramcell("ramcell_name", "ramcell_raster");
     /// file1.write("output.lab").unwrap();
     ///
-    /// let file2 = lab_rs::LabFile::read_from_file("output.lab").unwrap();
+    /// let file2 = LabFile::read_from_file("output.lab").unwrap();
     /// assert_eq!(file1, file2);
+    ///
+    /// fs::remove_file("output.lab").unwrap_or_else(|why| {println!("! {:?}", why.kind());});
+    ///
     /// ```
     pub fn read_from_file(filename: &str) -> Result<LabFile, Box<dyn Error>> {
         let file: File = match File::open(filename) {
@@ -164,8 +181,10 @@ impl LabFile {
                 let fields: Vec<&str> = line.split(';').collect();
                 match sec {
                     Section::Settings => {
+                        if !lab_file.settings.is_empty() {
+                            lab_file.settings.push('\n')
+                        }
                         lab_file.settings.push_str(&String::from(line.trim()));
-                        lab_file.settings.push('\n');
                     }
                     Section::Label => {
                         if fields.len() > 1 {
@@ -226,7 +245,7 @@ impl Sub for LabFile {
 
 impl fmt::Display for LabFile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut outp: String = format!("[SETTINGS]\n{}\n", self.settings);
+        let mut outp: String = format!("[SETTINGS]\n{}\n\n", self.settings);
         if !self.label.is_empty() {
             outp.push_str("[LABEL]\n");
             for val in self.label.values() {
@@ -249,6 +268,7 @@ impl fmt::Display for LabFile {
                 };
                 outp.push_str(&entry);
             }
+            outp.push('\n');
         }
         write!(f, "{}", outp.trim_end_matches(", "))
     }
