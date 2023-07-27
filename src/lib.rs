@@ -11,7 +11,7 @@ enum Section {
     Ramcell,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Clone, Default, Debug)]
 struct Entry {
     name: String,
     raster: String,
@@ -29,7 +29,7 @@ impl fmt::Display for Entry {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Clone, Default, Debug)]
 pub struct LabFile {
     settings: String,
     label: HashMap<String, Entry>,
